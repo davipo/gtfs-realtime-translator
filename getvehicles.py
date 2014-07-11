@@ -89,11 +89,13 @@ def getvehicles(data_source, route_id=None, vehicle_id=None):
     data = GtfsRealtimeData(feed_data)
     if route_id:
         response = data.get_vehicles(route_id, vehicle_id)
+        indent = 3
     else:   # list routes if no route_id given
         routes = {entity.vehicle.trip.route_id for entity in data.message.entity 
                                                if not entity.is_deleted}
         response = {'Routes':  sorted(routes)}
-    return json.dumps(response, indent=3)
+        indent = None
+    return json.dumps(response, indent=indent)
 
 
 mtba_bus = {
