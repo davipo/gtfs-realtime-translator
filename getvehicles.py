@@ -8,7 +8,9 @@
 
 import cgi
 import cgitb
-cgitb.enable(display=0, logdir='logs')
+cgitb.enable()          # in development: display errors in browser when used as CGI script
+# cgitb.enable(display=0, logdir='logs')    # production: log errors, don't display
+
 
 import datetime
 import sys
@@ -39,7 +41,7 @@ class GtfsRealtimeData(object):
             ### Warning: printing this spoils JSON output
     
     def get_vehicles(self, route_id, vehicle_id=None):
-        """ Return dict specified in SMSMyBus API."""
+        """ Return dict as specified in SMSMyBus API."""
         vpositions = self.vehicle_positions(route_id, vehicle_id)
         response = {
             'count': len(vpositions),
@@ -83,7 +85,8 @@ class GtfsRealtimeData(object):
 
 def getvehicles(data_source, route_id=None, vehicle_id=None, expected_feed_version=None):
     """ Return vehicle locations as JSON, filter by route_id & vehicle_id if given. 
-        If no route_id, return alphabetically sorted list of routes. """
+        If no route_id, return alphabetically sorted list of routes. 
+        Data source may be a URL (begins with 'http') or a filepath. """
     opener = urllib2.urlopen if data_source.startswith('http') else open
     feed_data = opener(data_source).read()
     data = GtfsRealtimeData(feed_data, expected_feed_version)
@@ -107,28 +110,34 @@ mtba_bus = {
 }
 
 
-if __name__ == '__main__':      # command-line tool
+if __name__ == '__main__':
     
-    if len(sys.argv) < 2:
-        response = '\n   Usage: %s <data_source> [ <route_id> [<vehicle_id>] ]\n' % sys.argv[0]
-        response += '      <data_source> may be a filepath or URL\n'
-        response += '      Without route_id, routes are listed\n'
-    else:
-        data_source = sys.argv[1]
-        route_id = sys.argv[2] if len(sys.argv) > 2 else None
-        vehicle_id = sys.argv[3] if len(sys.argv) > 3 else None
-        response = getvehicles(data_source, route_id, vehicle_id)
-    print response
-    
-else:   # running as CGI script
-    
-    print 'Content-Type: application/json'
-    print
     params = cgi.FieldStorage()
-    route_id = params.getfirst('routeID', None)
-    vehicle_id = params.getfirst('vehicleID', None)
-    data_source = mtba_bus['test_filename']
-    expected_feed_version = mtba_bus['feed_version']
-    response = getvehicles(data_source, route_id, vehicle_id, expected_feed_version)
-    print response
+    if len(params) == 0:
+        
+        # Not CGI, process command-line args
+        if len(sys.argv) < 2:
+            response = '\n   Usage: %s <data_source> [ <route_id> [<vehicle_id>] ]\n'
+            response %= sys.argv[0]
+            response += '      <data_source> may be a filepath or URL\n'
+            response += '      Without route_id, routes are listed\n'
+        else:
+            data_source = sys.argv[1]
+            route_id = sys.argv[2] if len(sys.argv) > 2 else None
+            vehicle_id = sys.argv[3] if len(sys.argv) > 3 else None
+            response = getvehicles(data_source, route_id, vehicle_id)
+        print response
+        
+    else:
+        
+        # run as CGI script
+        print 'Content-Type: application/json'
+        print
+        
+        route_id = params.getfirst('routeID', None)
+        vehicle_id = params.getfirst('vehicleID', None)
+        data_source = mtba_bus['test_filename']
+        expected_feed_version = mtba_bus['feed_version']
+        response = getvehicles(data_source, route_id, vehicle_id, expected_feed_version)
+        print response
     
