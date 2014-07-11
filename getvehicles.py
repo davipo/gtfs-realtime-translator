@@ -96,9 +96,13 @@ def getvehicles(data_source, route_id=None, vehicle_id=None):
     return json.dumps(response, indent=3)
 
 
-# See http://www.mbta.com/rider_tools/developers/default.asp?id=22393
-mtba_bus_positions_url = 'http://developer.mbta.com/lib/gtrtfs/Vehicles.pb'
-mtba_bus_positions_filename = 'Vehicles.pb'
+mtba_bus = {
+    'name': 'Massachusetts Bay Transportation Authority',
+    'info_url': 'http://www.mbta.com/rider_tools/developers/default.asp?id=22393',
+    'feed_url': 'http://developer.mbta.com/lib/gtrtfs/Vehicles.pb',
+    'feed_version': '0.1',
+    'test_filename': 'Vehicles.pb'
+}
 
 
 if __name__ == '__main__':      # command-line tool
@@ -121,7 +125,7 @@ else:   # running as CGI script
     params = cgi.FieldStorage()
     route_id = params.getfirst('routeID', None)
     vehicle_id = params.getfirst('vehicleID', None)
-    data_source = mtba_bus_positions_filename
     response = getvehicles(data_source, route_id, vehicle_id)
+    data_source = mtba_bus['test_filename']
     print response
     
