@@ -24,7 +24,7 @@ expected_gtfs_rt_version = '1.0'
 class GtfsRealtimeData(object):
     """ GTFS realtime data handler"""
     
-    def __init__(self, feed_data):
+    def __init__(self, feed_data, expected_feed_version=None):
         self.message = gtfs_realtime_pb2.FeedMessage()
         self.message.ParseFromString(feed_data)
         
@@ -32,11 +32,11 @@ class GtfsRealtimeData(object):
             # convert with datetime.datetime.utcfromtimestamp()
         
         # Check feed version
+        expected_feed_version = expected_feed_version or expected_gtfs_rt_version
         feed_version = self.message.header.gtfs_realtime_version
-        if feed_version != expected_gtfs_rt_version:
-            print 'Feed version is %s, expecting %s\n' % (feed_version, 
-                                                         expected_gtfs_rt_version)
-    
+        if feed_version != expected_feed_version:
+            print 'Feed version is %s, expecting %s\n' % (feed_version, expected_feed_version)
+            ### Warning: printing this spoils JSON output
     
     def get_vehicles(self, route_id, vehicle_id=None):
         """ Return dict specified in SMSMyBus API."""
@@ -81,12 +81,12 @@ class GtfsRealtimeData(object):
         
 
 
-def getvehicles(data_source, route_id=None, vehicle_id=None):
+def getvehicles(data_source, route_id=None, vehicle_id=None, expected_feed_version=None):
     """ Return vehicle locations as JSON, filter by route_id & vehicle_id if given. 
         If no route_id, return alphabetically sorted list of routes. """
     opener = urllib2.urlopen if data_source.startswith('http') else open
     feed_data = opener(data_source).read()
-    data = GtfsRealtimeData(feed_data)
+    data = GtfsRealtimeData(feed_data, expected_feed_version)
     if route_id:
         response = data.get_vehicles(route_id, vehicle_id)
         indent = 3
@@ -127,7 +127,8 @@ else:   # running as CGI script
     params = cgi.FieldStorage()
     route_id = params.getfirst('routeID', None)
     vehicle_id = params.getfirst('vehicleID', None)
-    response = getvehicles(data_source, route_id, vehicle_id)
     data_source = mtba_bus['test_filename']
+    expected_feed_version = mtba_bus['feed_version']
+    response = getvehicles(data_source, route_id, vehicle_id, expected_feed_version)
     print response
     
