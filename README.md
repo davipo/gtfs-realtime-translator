@@ -1,16 +1,9 @@
-gtfs-realtime-translator
-========================
-
+## gtfs-realtime-translator
 Translate GTFS-realtime data feed
 
+Reads a General Transit Feed Specification realtime feed, recoding to JSON format. Used to provide realtime bus locations to apps for bus riders.
 
-Reads General Transit Feed Specification realtime feed, recodes to JSON format.
-
-Used to provide realtime bus locations to apps for bus riders.
-
-
-Files
------
+### Files
     Vehicles.pb             
         Sample GTFS-realtime bus locations data for demo 
         (Google protocol buffer format)
