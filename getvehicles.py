@@ -122,9 +122,7 @@ if __name__ == '__main__':
             response += '      <data_source> may be a filepath or URL\n'
             response += '      Without route_id, routes are listed\n'
         else:
-            data_source = sys.argv[1]
-            route_id = sys.argv[2] if len(sys.argv) > 2 else None
-            vehicle_id = sys.argv[3] if len(sys.argv) > 3 else None
+            data_source, route_id, vehicle_id = (sys.argv + [None, None])[1:4]
             response = getvehicles(data_source, route_id, vehicle_id)
         print response
         
